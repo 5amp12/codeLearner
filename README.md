@@ -1,56 +1,121 @@
-# Welcome to your Expo app 👋
+# CodeQuest
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A "Duolingo for coding" mobile app — bite-sized, gamified coding lessons — built with React Native + Expo.
 
-## Get started
+## Tech Stack
 
-1. Install dependencies
+- **React Native** via **Expo** (managed workflow, `expo-router` for file-based navigation)
+- **Supabase** — auth + user progress storage
+- Backend code-execution service (TBD — e.g. Judge0/Piston) for validating submitted code
+- No Mac required for development or iOS builds — uses **EAS Build** (cloud builds) to produce iOS binaries
 
-   ```bash
-   npm install
-   ```
+## Prerequisites
 
-2. Start the app
+- [Node.js](https://nodejs.org/) (LTS version)
+- Git
+- A phone with the **Expo Go** app installed (from the App Store / Play Store) — used for live previewing during development
+- Free account at [ngrok.com](https://ngrok.com/) (only needed if using tunnel mode — see Troubleshooting)
 
-   ```bash
-   npx expo start
-   ```
+## Getting Started
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Clone the repo and install dependencies:
 
 ```bash
-npm run reset-project
+git clone https://github.com/<your-username>/codequest.git
+cd codequest
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Start the development server:
 
-### Other setup steps
+```bash
+npx expo start
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+This prints a QR code in your terminal. Scan it with your phone's **Camera app** (not from inside Expo Go) to open the project live in Expo Go.
 
-## Learn more
+> Your phone and computer must be on the same local network for this to work.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Project Structure
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```
+codequest/
+  src/app/          ← screens, using file-based routing (expo-router)
+    _layout.tsx      ← root layout / navigation config
+    index.tsx        ← home screen
+  assets/            ← images, fonts, etc.
+  app.json           ← Expo app config
+  package.json
+```
 
-## Join the community
+## Building for iOS (no Mac required)
 
-Join our community of developers creating universal apps.
+This project uses **EAS Build**, which compiles the iOS binary in Expo's cloud — no local Xcode/macOS needed.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+eas build --platform ios
+```
+
+Submit the built app to App Store Connect:
+
+```bash
+eas submit --platform ios
+```
+
+Requires a paid [Apple Developer account](https://developer.apple.com/) ($99/year).
+
+## Troubleshooting
+
+### QR code / Expo Go stuck on "Opening project..." indefinitely
+
+This usually means the phone can't reach the dev server over the local network. Common causes and fixes:
+
+**1. Windows network profile set to Public**
+Windows blocks local discovery traffic on networks marked "Public" — this applies to both Wi-Fi and Ethernet adapters.
+
+- Go to **Settings → Network & Internet → [Wi-Fi/Ethernet]** → click your connection → set **Network profile** to **Private**
+- Retry `npx expo start`
+
+**2. Network isolation (university/guest Wi-Fi, eduroam, etc.)**
+Some networks block devices from seeing each other even when connected to the same SSID. If the network profile fix doesn't help and you're on a restrictive network, use tunnel mode instead (see below).
+
+### Using tunnel mode
+
+If LAN mode doesn't work, tunnel routes the connection through Expo's servers instead of relying on local network discovery:
+
+```bash
+npx expo start --tunnel
+```
+
+First run will prompt to install `@expo/ngrok` — accept.
+
+**If you hit `CommandError: TypeError: Cannot read properties of undefined (reading 'body')`:**
+This means ngrok requires an authenticated account now (anonymous tunnel connections are no longer supported).
+
+1. Sign up free at [ngrok.com](https://ngrok.com/)
+2. Copy your authtoken from the dashboard ("Your Authtoken" page)
+3. Configure it locally:
+   ```bash
+   npx ngrok config add-authtoken YOUR_TOKEN_HERE
+   ```
+4. Retry:
+   ```bash
+   npx expo start --tunnel
+   ```
+
+**If global npm packages aren't being picked up (Git Bash / Windows):**
+Install the package as a local dev dependency instead of relying on the global install:
+
+```bash
+npm install @expo/ngrok --save-dev
+npx expo start --tunnel
+```
+
+## Roadmap
+
+- [ ] Define lesson/exercise data model in Supabase
+- [ ] Build core lesson loop (lesson list → exercise → check answer → XP/streak update)
+- [ ] Integrate code-execution backend for validating submissions
+- [ ] Add gamification (streaks, XP, hearts/lives, levels)
+- [ ] First EAS build + TestFlight distribution
+- [ ] App Store submission
